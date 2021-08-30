@@ -292,6 +292,12 @@ module Elasticsearch
               params = connection.connection.params.merge(params.to_hash)
             end
 
+            if body && body.is_a?(String) && gzipped?(body)
+              connection.connection.headers[CONTENT_ENCODING] = GZIP
+            else
+              connection.connection.headers.delete(CONTENT_ENCODING)
+            end
+
             url      = connection.full_url(path, params)
             response = block.call(connection, url)
             connection.healthy! if connection.failures > 0
@@ -382,6 +388,7 @@ module Elasticsearch
         DEFAULT_CONTENT_TYPE = 'application/json'.freeze
         GZIP = 'gzip'.freeze
         ACCEPT_ENCODING = 'Accept-Encoding'.freeze
+        CONTENT_ENCODING = 'Content-Encoding'.freeze
         GZIP_FIRST_TWO_BYTES = '1f8b'.freeze
         HEX_STRING_DIRECTIVE = 'H*'.freeze
         RUBY_ENCODING = '1.9'.respond_to?(:force_encoding)
