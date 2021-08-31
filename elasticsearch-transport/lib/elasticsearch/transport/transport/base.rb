@@ -407,6 +407,7 @@ module Elasticsearch
         end
 
         def decompress_response(body)
+          return body unless use_compression?
           return body unless gzipped?(body)
 
           io = StringIO.new(body)
