@@ -409,7 +409,6 @@ module Elasticsearch
         end
 
         def decompress_response(body)
-          return body unless use_compression?
           return body unless gzipped?(body)
 
           io = StringIO.new(body)
@@ -422,6 +421,7 @@ module Elasticsearch
         end
 
         def gzipped?(body)
+          return unless body
           body[0..1].unpack(HEX_STRING_DIRECTIVE)[0] == GZIP_FIRST_TWO_BYTES
         end
 
