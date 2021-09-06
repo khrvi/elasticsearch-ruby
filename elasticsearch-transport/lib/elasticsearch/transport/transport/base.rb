@@ -401,6 +401,8 @@ module Elasticsearch
             else
               headers.delete(CONTENT_ENCODING)
             end
+          else
+            headers.delete(CONTENT_ENCODING) if headers
           end
 
           [body, headers]

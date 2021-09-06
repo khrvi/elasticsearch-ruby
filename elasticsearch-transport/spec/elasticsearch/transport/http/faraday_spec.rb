@@ -31,12 +31,7 @@ describe Elasticsearch::Transport::Transport::HTTP::Faraday do
     let(:headers) { { 'Content-Type' => 'application/x-ndjson' } }
     let(:response) { instance_double('Faraday::Response', status: 200, body: '', headers: headers) }
     let(:expected_headers) do
-      headers.merge(
-        {
-          "User-Agent" => "elasticsearch-ruby/8.0.0 (RUBY_VERSION: 2.7.3; darwin x86_64; Faraday v1.7.1)",
-          "x-elastic-client-meta" => "es=8.0.0,rb=2.7.3,t=8.0.0,fd=1.7.1,pt=0.13.3"
-        }
-      )
+      client.transport.connections.first.connection.headers.merge(headers)
     end
 
     before do
@@ -127,6 +122,19 @@ describe Elasticsearch::Transport::Transport::HTTP::Faraday do
           client.transport.connections.first.connection
         ).to receive(:run_request).with(*request_params).and_return(response)
         perform_request
+      end
+
+      context 'when client makes second request with nil boby' do
+        before { perform_request }
+
+        it 'remove Content-Encoding header' do
+          expected_headers.delete("Content-Encoding")
+          expect(
+            client.transport.connections.first.connection
+          ).to receive(:run_request).with(:post, 'http://localhost:9200/', nil, expected_headers)
+                                    .and_return(response)
+          client.perform_request('POST', '/', {}, nil, headers)
+        end
       end
     end
   end
